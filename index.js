@@ -4,6 +4,13 @@ const fs = require("fs");
 const path = require("path");
 const keepAlive = require("./server.js");
 
+console.log('Starting bot...');
+
+if (!process.env.TOKEN) {
+    console.error("Bot token not found. Please set the TOKEN in your .env file.");
+    process.exit(1);
+}
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -93,4 +100,6 @@ client.on("messageCreate", (msg) => {
     }
 });
 
-client.login(process.env.TOKEN);
+client.login(process.env.TOKEN).catch((error) => {
+    console.error("Error logging in:", error);
+});
