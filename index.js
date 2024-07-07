@@ -1,17 +1,11 @@
+// index.js
 require("dotenv").config();
-console.log(`Loaded token: ${process.env.TOKEN ? "Token Loaded" : "No Token"}`); // Debugging line
-
 const { Client, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const keepAlive = require("./server.js");
 
 console.log('Starting bot...');
-
-if (!process.env.TOKEN) {
-    console.error("Bot token not found. Please set the TOKEN in your .env file.");
-    process.exit(1);
-}
 
 const client = new Client({
     intents: [
@@ -24,8 +18,11 @@ const client = new Client({
 const dataPath = path.join(__dirname, "data.json");
 
 function loadData() {
-    const data = fs.readFileSync(dataPath, "utf-8");
-    return JSON.parse(data);
+    if (fs.existsSync(dataPath)) {
+        const data = fs.readFileSync(dataPath, "utf-8");
+        return JSON.parse(data);
+    }
+    return { responding: true, encouragements: [] };
 }
 
 function saveData(data) {
@@ -53,6 +50,7 @@ client.once("ready", () => {
 });
 
 client.on("messageCreate", (msg) => {
+    if (msg.author.bot) return; // Ignore bot messages
     const data = loadData();
 
     if (msg.content === "$ping") {
@@ -73,14 +71,18 @@ client.on("messageCreate", (msg) => {
 
     if (msg.content.startsWith("$new")) {
         const newEncouragement = msg.content.split("$new ")[1];
-        data.encouragements.push(newEncouragement);
-        saveData(data);
-        msg.channel.send("New encouragement added.");
+        if (newEncouragement) {
+            data.encouragements.push(newEncouragement);
+            saveData(data);
+            msg.channel.send("New encouragement added.");
+        } else {
+            msg.channel.send("Please provide a valid encouragement message.");
+        }
     }
 
     if (msg.content.startsWith("$del")) {
         const index = parseInt(msg.content.split("$del ")[1]);
-        if (index >= 0 && index < data.encouragements.length) {
+        if (!isNaN(index) && index >= 0 && index < data.encouragements.length) {
             data.encouragements.splice(index, 1);
             saveData(data);
             msg.channel.send("Encouragement deleted.");
@@ -89,20 +91,32 @@ client.on("messageCreate", (msg) => {
         }
     }
 
-    if (sadWords.some((word) => msg.content.includes(word))) {
+    if (sadWords.some((word) => msg.content.toLowerCase().includes(word.toLowerCase()))) {
         const encouragement =
-            data.encouragements[
-                Math.floor(Math.random() * data.encouragements.length)
-            ];
-        msg.reply(encouragement);
+            data.encouragements[Math.floor(Math.random() * data.encouragements.length)];
+        if (encouragement) {
+            msg.reply(encouragement);
+        }
     }
 
     if (msg.content === "$list") {
-        msg.channel.send(data.encouragements.join("\n"));
+        if (data.encouragements.length > 0) {
+            msg.channel.send(data.encouragements.join("\n"));
+        } else {
+            msg.channel.send("No encouragements found.");
+        }
     }
 });
 
-// Error handling for login
-client.login(process.env.TOKEN).catch((error) => {
-    console.error("Error logging in:", error);
-});
+try {
+    client.login(process.env.TOKEN).then(() => {
+        console.log("Login successful!");
+    }).catch((error) => {
+        console.error("Error during login:", error);
+    });
+} catch (error) {
+    console.error("Unexpected error:", error);
+}
+
+// Start the keep-alive server
+keepAlive();
