@@ -1,4 +1,6 @@
 require("dotenv").config();
+console.log(`Loaded token: ${process.env.TOKEN ? "Token Loaded" : "No Token"}`); // Debugging line
+
 const { Client, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
@@ -100,6 +102,7 @@ client.on("messageCreate", (msg) => {
     }
 });
 
+// Error handling for login
 client.login(process.env.TOKEN).catch((error) => {
     console.error("Error logging in:", error);
 });
