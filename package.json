@@ -1,12 +1,26 @@
 {
-  "name": "test-discord-bot",
-  "version": "1.0.0",
-  "main": "test_bot.js",
   "dependencies": {
-    "discord.js": "^14.0.0",
-    "dotenv": "^16.0.0"
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2"
   },
   "scripts": {
-    "start": "node test_bot.js"
-  }
+    "start": "node server.js"
+  },
+  "name": "uplift",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lokify/Uplift-Discord-Bot.git"
+  },
+  "author": "Lokendar Singh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lokify/Uplift-Discord-Bot/issues"
+  },
+  "homepage": "https://github.com/lokify/Uplift-Discord-Bot#readme",
+  "description": ""
 }
