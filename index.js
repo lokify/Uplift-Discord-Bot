@@ -1,13 +1,9 @@
-// index.js
 require("dotenv").config();
 const { Client, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const keepAlive = require("./server.js");
 
-console.log('Starting bot...');
-
-console.log('About to create client...');
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -15,25 +11,16 @@ const client = new Client({
         GatewayIntentBits.MessageContent,
     ],
 });
-console.log('Client created');
 
 const dataPath = path.join(__dirname, "data.json");
 
 function loadData() {
-    console.log('Loading data...');
-    if (fs.existsSync(dataPath)) {
-        const data = fs.readFileSync(dataPath, "utf-8");
-        console.log('Data loaded successfully');
-        return JSON.parse(data);
-    }
-    console.log('No existing data found, using default');
-    return { responding: true, encouragements: [] };
+    const data = fs.readFileSync(dataPath, "utf-8");
+    return JSON.parse(data);
 }
 
 function saveData(data) {
-    console.log('Saving data...');
     fs.writeFileSync(dataPath, JSON.stringify(data, null, 2), "utf-8");
-    console.log('Data saved successfully');
 }
 
 const sadWords = [
@@ -46,14 +33,10 @@ const sadWords = [
 ];
 
 async function getQuote() {
-    console.log('Fetching quote...');
     const fetch = (await import("node-fetch")).default;
     return fetch("http://zenquotes.io/api/random")
         .then((res) => res.json())
-        .then((data) => {
-            console.log('Quote fetched successfully');
-            return data[0]["q"] + " -" + data[0]["a"];
-        });
+        .then((data) => data[0]["q"] + " -" + data[0]["a"]);
 }
 
 client.once("ready", () => {
@@ -61,40 +44,34 @@ client.once("ready", () => {
 });
 
 client.on("messageCreate", (msg) => {
-    if (msg.author.bot) return; // Ignore bot messages
-    
     const data = loadData();
-    
+
     if (msg.content === "$ping") {
         msg.channel.send("Pong! The bot is active.");
     }
-    
+
     if (msg.content === "$toggle") {
         data.responding = !data.responding;
         saveData(data);
         msg.channel.send(`Bot responding is now ${data.responding ? "ON" : "OFF"}.`);
     }
-    
+
     if (!data.responding) return;
-    
+
     if (msg.content === "$inspire") {
         getQuote().then((quote) => msg.channel.send(quote));
     }
-    
+
     if (msg.content.startsWith("$new")) {
         const newEncouragement = msg.content.split("$new ")[1];
-        if (newEncouragement) {
-            data.encouragements.push(newEncouragement);
-            saveData(data);
-            msg.channel.send("New encouragement added.");
-        } else {
-            msg.channel.send("Please provide a valid encouragement message.");
-        }
+        data.encouragements.push(newEncouragement);
+        saveData(data);
+        msg.channel.send("New encouragement added.");
     }
-    
+
     if (msg.content.startsWith("$del")) {
         const index = parseInt(msg.content.split("$del ")[1]);
-        if (!isNaN(index) && index >= 0 && index < data.encouragements.length) {
+        if (index >= 0 && index < data.encouragements.length) {
             data.encouragements.splice(index, 1);
             saveData(data);
             msg.channel.send("Encouragement deleted.");
@@ -102,36 +79,18 @@ client.on("messageCreate", (msg) => {
             msg.channel.send("Invalid index.");
         }
     }
-    
-    if (sadWords.some((word) => msg.content.toLowerCase().includes(word.toLowerCase()))) {
+
+    if (sadWords.some((word) => msg.content.includes(word))) {
         const encouragement =
-            data.encouragements[Math.floor(Math.random() * data.encouragements.length)];
-        if (encouragement) {
-            msg.reply(encouragement);
-        }
+            data.encouragements[
+                Math.floor(Math.random() * data.encouragements.length)
+            ];
+        msg.reply(encouragement);
     }
-    
+
     if (msg.content === "$list") {
-        if (data.encouragements.length > 0) {
-            msg.channel.send(data.encouragements.join("\n"));
-        } else {
-            msg.channel.send("No encouragements found.");
-        }
+        msg.channel.send(data.encouragements.join("\n"));
     }
 });
 
-console.log('About to attempt login...');
-client.login(process.env.TOKEN).then(() => {
-    console.log("Login successful!");
-}).catch((error) => {
-    console.error("Error during login:", error);
-    console.error("Error name:", error.name);
-    console.error("Error message:", error.message);
-    console.error("Error stack:", error.stack);
-});
-console.log('Login attempt completed');
-
-// Start the keep-alive server
-console.log('Starting keep-alive server...');
-keepAlive();
-console.log('Keep-alive server started');
+client.login(process.env.TOKEN);
