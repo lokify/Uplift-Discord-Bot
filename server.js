@@ -1,5 +1,11 @@
-var https=require('https');
-https.createServer(function(req,res){
-  res.write(" The bot is live ");
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.write('The bot is live');
   res.end();
-}).listen(8080);
+});
+
+server.listen(8080, () => {
+  console.log('Server is running on port 8080');
+});
