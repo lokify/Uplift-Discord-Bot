@@ -92,6 +92,6 @@ client.on("messageCreate", (msg) => {
         msg.channel.send(data.encouragements.join("\n"));
     }
 });
-keepAlive()
+
 
 client.login(process.env.TOKEN);
