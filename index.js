@@ -32,6 +32,18 @@ const sadWords = [
     "why always me",
 ];
 
+const happyPlaylists = [
+    "https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0",
+    "https://open.spotify.com/playlist/37i9dQZF1DX9XIFQuFvzM4",
+    
+];
+
+const calmingPlaylists = [
+    "https://open.spotify.com/playlist/37i9dQZF1DWZqd5JICZI0u",
+    "https://open.spotify.com/playlist/37i9dQZF1DX3Ogo9pFvBkY",
+    
+];
+
 async function getQuote() {
     const fetch = (await import("node-fetch")).default;
     return fetch("http://zenquotes.io/api/random")
@@ -43,7 +55,7 @@ client.once("ready", () => {
     console.log(`Logged in as ${client.user.tag}!`);
 });
 
-client.on("messageCreate", (msg) => {
+client.on("messageCreate", async (msg) => {
     const data = loadData();
 
     if (msg.content === "$ping") {
@@ -86,6 +98,14 @@ client.on("messageCreate", (msg) => {
                 Math.floor(Math.random() * data.encouragements.length)
             ];
         msg.reply(encouragement);
+
+        const playlist = calmingPlaylists[Math.floor(Math.random() * calmingPlaylists.length)];
+        msg.channel.send(`I'm sorry you're feeling down. Here's a calming playlist that might help: ${playlist}`);
+    }
+
+    if (msg.content === "$happy") {
+        const playlist = happyPlaylists[Math.floor(Math.random() * happyPlaylists.length)];
+        msg.channel.send(`Here's a happy playlist to boost your mood: ${playlist}`);
     }
 
     if (msg.content === "$list") {
